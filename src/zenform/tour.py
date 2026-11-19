@@ -26,12 +26,13 @@ def run_tour(
     show: Callable[[object, int, int], Callable[[], None]],
     ask: Callable[[str], str],
     out: Callable[[str], None] = print,
+    intro: str | None = None,
 ) -> None:
     """`show(entry, i, n)` prepares and opens the preview and returns a function that closes it."""
     n = len(entries)
     if n == 0:
         raise SystemExit("Nothing to tour.")
-    out(f"Touring {n} config(s): Enter = next, p = previous, 1-{n} = jump, q = quit.\n")
+    out(intro if intro is not None else f"Touring {n} config(s): Enter = next, p = previous, 1-{n} = jump, q = quit.")
     i = 0
     while True:
         close = show(entries[i], i, n)

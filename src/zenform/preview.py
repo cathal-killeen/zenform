@@ -124,6 +124,19 @@ def stop(proc: subprocess.Popen, preview: str, timeout: float = 30.0) -> None:
         time.sleep(0.2)
 
 
+def sidebar_only(session: dict) -> dict:
+    """The session with just the sidebar in it: pins, essentials and the folders' placeholder tabs.
+
+    Open tabs are dropped, so the preview shows the layout and not your day's browsing. Nothing selects a pin either,
+    so no page is loaded at start-up. The input is not changed.
+    """
+    out = dict(session)
+    out["tabs"] = [
+        dict(t, _zenIsActiveTab=False) if "_zenIsActiveTab" in t else t for t in session["tabs"] if t.get("pinned")
+    ]
+    return out
+
+
 def command(binary: str, preview: str) -> list[str]:
     return [binary, "-profile", preview, "-no-remote"]
 

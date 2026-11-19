@@ -121,8 +121,10 @@ class Command(unittest.TestCase):
         self.assertEqual(kinds, ["launch", "stop", "launch", "stop"])  # one window at a time
         self.assertEqual(self.events[0][1], ["Calendar", "Docs", "Mail", "Notes"])  # minimal
         self.assertIn("GitHub", self.events[2][1])  # developer
-        self.assertIn("[1/2] minimal", out)
-        self.assertIn("[2/2] developer", out)
+        self.assertIn("minimal", out)
+        self.assertIn("developer", out)
+        self.assertIn("1/2", out)
+        self.assertIn("2/2", out)
         self.assertIn("real Zen was not touched", out)
 
     def test_defaults_to_all_bundled_examples_and_wraps(self):

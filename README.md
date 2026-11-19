@@ -4,13 +4,26 @@
 
 ```console
 $ zenform plan
-  + 117 Exports  [Now]  https://tracker.example.com/browse/APP-117
-  ~ 'Inbox - me@example.com - Mail' -> 'Mail'  [essentials]
-  - unpin 'Old pin' (becomes an ordinary tab)
-  icons: 1 filled from the favicon database
+zenform plan
 
-This is a plan; nothing was written. Close Zen, then run `zenform apply`.
+workspace Work
+
+Essentials
+  ~ Inbox - me@example.com - Mail → Mail
+
+Now
+  + 117 Exports  tracker.example.com/browse/APP-117
+
+Unpinned  (the tab stays open as an ordinary tab)
+  − Old pin
+
+Icons  1 filled
+────────────────────────────────────────────────────────────
+1 added  ·  1 relabelled  ·  1 unpinned
 ```
+
+Output is coloured on a terminal (green added, yellow changed, red removed) and plain when piped. `NO_COLOR` turns it
+off and `--color always|never` overrides.
 
 > **Status: alpha, and unofficial.** zenform is an independent tool and is not affiliated with Zen Browser. It edits an
 > undocumented file that Zen can change in any release; see [Safety](#safety). Tested on macOS with Zen 1.24.3b.
@@ -83,6 +96,8 @@ real profile is written.
   `ZENFORM_PREVIEW_PROFILE`. It is rebuilt on every preview, and zenform refuses to use a real Zen profile as one.
 - To look like your Zen it copies `prefs.js`, `containers.json`, `zen-themes.json`, `zen-keyboard-shortcuts.json` and
   `chrome/` from your profile. Never cookies, logins, history or extensions, so pages in the preview are signed out.
+- The preview shows **only the sidebar**: your open tabs are left out (`--keep-tabs` brings them back), and no pin is
+  selected, so nothing loads at start-up. Icons are looked up fresh (see below), not copied from your session.
 - `--no-launch` only prepares the profile and prints how to open it. If the Zen binary is not found, set `ZENFORM_ZEN_BIN`.
 - Close the preview window before running `preview` again, then quit your real Zen and `apply` to make it real.
 
@@ -104,7 +119,12 @@ a `zenform.toml`) works the same way.
 ## What apply does and does not do
 
 - Pins in the config are created, relabelled or moved. A pin the config no longer lists becomes an **ordinary tab; nothing is closed**. Open tabs are never edited.
-- A pin with no icon is given one from your profile's favicon database (sites you have visited), so it is not blank until its page loads. If the site was never visited, it stays blank until opened once.
+- **Icons.** Zen stores each pin's icon, and it is blank until the page loads. zenform fills it from your profile's
+  favicon database (what Firefox recorded for pages you visited): the very page's icon first, then a page that shares its
+  path (`docs.google.com/presentation/…` gets Slides, not Sheets), then the site's only icon. A host that serves several
+  products and has nothing under the pin's path gets **no** icon, because blank beats wrong; Zen fills it in once the page
+  loads. A match for the page always replaces a stored icon (Zen sometimes keeps a sign-in page's generic one). If your pins
+  already carry wrong icons, `plan --redo-icons` / `apply --redo-icons` ignores what is stored: the page's own icon, or blank.
 - Only the workspace named in `zenform.toml` is managed. Essentials span workspaces, so they are always managed.
 
 ## Safety

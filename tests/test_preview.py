@@ -1,6 +1,7 @@
 """zenform preview: a separate Zen on a throwaway profile. The live profile must only ever be read."""
 
 import hashlib
+import json
 import os
 import tempfile
 import unittest
@@ -172,3 +173,28 @@ class Command(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class SidebarOnly(unittest.TestCase):
+    def test_drops_open_tabs_keeps_every_pin_and_placeholder_and_changes_nothing_else(self):
+        s = session()
+        s["tabs"][0]["_zenIsActiveTab"] = True
+        before = json.dumps(s, sort_keys=True)
+        out = preview.sidebar_only(s)
+        self.assertEqual(json.dumps(s, sort_keys=True), before)  # input untouched
+        self.assertFalse(any(not t.get("pinned") for t in out["tabs"]))
+        self.assertEqual(len(out["tabs"]), len([t for t in s["tabs"] if t.get("pinned")]))
+        self.assertTrue(any(t.get("zenIsEmpty") for t in out["tabs"]))  # the folder placeholders stay
+        self.assertFalse(any(t.get("_zenIsActiveTab") for t in out["tabs"]))  # nothing is selected at start-up
+        self.assertEqual(out["folders"], s["folders"])
+
+
+class PreviewCommandTabs(Command):
+    def written_tabs(self):
+        return mozlz4.read(os.path.join(self.pdir, profile.SESSION))["tabs"]
+
+    def test_the_preview_shows_only_the_sidebar_unless_asked(self):
+        run(*self.args, "preview", "--no-launch", "--no-favicons", "--preview-profile", self.pdir)
+        self.assertFalse(any(not t.get("pinned") for t in self.written_tabs()))
+        run(*self.args, "preview", "--no-launch", "--no-favicons", "--keep-tabs", "--preview-profile", self.pdir)
+        self.assertTrue(any(not t.get("pinned") for t in self.written_tabs()))
