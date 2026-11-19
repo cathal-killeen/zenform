@@ -27,7 +27,7 @@ This is a plan; nothing was written. Close Zen, then run `zenform apply`.
 uv tool install zenform     # or: pipx install zenform
 ```
 
-Python 3.11 or newer, no other dependencies. Until it is on PyPI: `uv tool install git+https://github.com/cathal-killeen/zenform`.
+Python 3.11 or newer, no other dependencies. From source: `uv tool install git+https://github.com/cathal-killeen/zenform`.
 
 ## Use
 
