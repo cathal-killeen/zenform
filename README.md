@@ -36,6 +36,7 @@ zenform dump --out ~/zen-config     # write your current pins as a config direct
 $EDITOR ~/zen-config/folders/10-*.toml
 export ZENFORM_CONFIG=~/zen-config  # or pass --config, or run from inside the directory
 zenform plan                        # what would change; writes nothing
+zenform preview                     # see it: opens a separate Zen window on a throwaway profile
 # quit Zen, then:
 zenform apply                       # backs up, writes, reads back to check
 zenform rollback                    # undo the last apply (Zen closed)
@@ -71,6 +72,19 @@ pins = [
 
 See [`examples/config`](examples/config).
 
+## Preview before you apply
+
+`zenform preview` applies your config to a copy of your *current* session in a separate preview profile, then opens a
+second Zen window on it (`-no-remote`, like a dev run of an extension). Your real Zen can stay open, and nothing in your
+real profile is written.
+
+- The preview profile defaults to `~/.zenform-preview-profile`; change it with `--preview-profile` or
+  `ZENFORM_PREVIEW_PROFILE`. It is rebuilt on every preview, and zenform refuses to use a real Zen profile as one.
+- To look like your Zen it copies `prefs.js`, `containers.json`, `zen-themes.json`, `zen-keyboard-shortcuts.json` and
+  `chrome/` from your profile. Never cookies, logins, history or extensions, so pages in the preview are signed out.
+- `--no-launch` only prepares the profile and prints how to open it. If the Zen binary is not found, set `ZENFORM_ZEN_BIN`.
+- Close the preview window before running `preview` again, then quit your real Zen and `apply` to make it real.
+
 ## What apply does and does not do
 
 - Pins in the config are created, relabelled or moved. A pin the config no longer lists becomes an **ordinary tab; nothing is closed**. Open tabs are never edited.
@@ -82,7 +96,7 @@ See [`examples/config`](examples/config).
 Zen keeps pins in `zen-sessions.jsonlz4` and rewrites it while running and on quit. So:
 
 - `apply` **refuses to run while Zen is open**, backs the file up to `zenform-backups/` in the profile first, checks the result before writing and reads it back after, and restores the backup itself if that check fails.
-- `plan` and `dump` only read. The favicon database is read from a copy.
+- `plan`, `dump` and `preview` never write to your profile. The favicon database is read from a copy.
 - The format is undocumented ([what we know](docs/session-format.md)). `doctor` warns on a Zen version that has not been tested, and every command refuses a session file that does not have the expected shape.
 - Do not put real session files in a public repo: they contain your tab history.
 

@@ -18,7 +18,10 @@ Zen must be closed and the user decides when. Everything else is safe.
    - Do not list a folder that is in `keep_folders`; do not touch it.
 4. `zenform plan --json --no-favicons` and read `changes`: `add`, `relabel`, `move`, `unpin`, `remove_folder`.
    `unpin` is not a close: the tab stays open as an ordinary tab. Show the user the plan as text (`zenform plan`).
-5. Stop. Tell the user to quit Zen and run `zenform apply`; `zenform rollback` undoes it.
+5. To let the user see it first, `zenform preview` opens a separate Zen window on a throwaway profile; your real
+   profile is untouched. It pops up a window, so run it only when the user asks; `zenform preview --no-launch` only
+   prepares the profile and is always safe.
+6. Stop. Tell the user to quit Zen and run `zenform apply`; `zenform rollback` undoes it.
 
 Unknown keys in the config are errors by design. If `plan` fails, read the message: it names the file and the key.
 
@@ -28,7 +31,8 @@ Unknown keys in the config are errors by design. If `plan` fails, read the messa
   reads TOML with `tomllib`. Keep it that way; a tool that edits a browser's files must be auditable.
 - **`model.apply_layout` is pure**: it returns a new session and a list of operation dicts and must not mutate its
   input. Anything that touches the filesystem lives in `profile.py`, `config.py` or `cli.py`.
-- **Safety invariants** (each has a test; do not weaken them): `apply` refuses while Zen runs; it backs up before
+- **Safety invariants** (each has a test; do not weaken them): `preview` only ever writes to its own profile (never a real Zen profile, never
+  cookies or logins); `apply` refuses while Zen runs; it backs up before
   writing; it checks the result before and after; it never closes or deletes an open tab; `plan`/`dump` never write;
   `keep_folders` are left byte-for-byte alone; applying the same config twice changes nothing.
 - **Fixtures are synthetic** (`tests/helpers.py`). Never commit a real session file or a real favicon database: they
