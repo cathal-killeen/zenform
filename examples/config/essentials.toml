@@ -1,0 +1,6 @@
+# The icon tiles. label: 14 characters or fewer. url: the pin's home page.
+pins = [
+  {label = "Mail",     url = "https://mail.example.com/inbox"},
+  {label = "Calendar", url = "https://calendar.example.com/"},
+  {label = "Chat",     url = "https://chat.example.com/"},
+]

@@ -1,0 +1,12 @@
+__pycache__/
+*.pyc
+.venv/
+dist/
+build/
+*.egg-info/
+.ruff_cache/
+.pytest_cache/
+
+# Your own config and any real session files stay out of the repo.
+/zenform-config/
+/tests/fixtures/private/
