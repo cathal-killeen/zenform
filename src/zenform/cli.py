@@ -9,7 +9,7 @@ import shutil
 import sys
 import time
 
-from zenform import TESTED_ZEN, __version__, config, model, mozlz4, preview, profile
+from zenform import TESTED_ZEN, __version__, config, examples, model, mozlz4, preview, profile, tour
 from zenform.favicons import Favicons
 
 
@@ -181,6 +181,79 @@ def cmd_preview(args) -> int:
     return 0
 
 
+def _interactive() -> bool:
+    return sys.stdin.isatty()
+
+
+def _fit_workspace(spec: dict, session: dict, requested: str | None, out=print) -> dict:
+    """Examples name a workspace of their own; show them in yours (the only one, or --workspace)."""
+    names = model.workspace_names(session)
+    if requested:
+        return {**spec, "workspace": requested}
+    if spec.get("workspace") not in names and len(names) == 1:
+        out(f"  (workspace {spec.get('workspace')!r} shown in {names[0]!r}, your only workspace)")
+        return {**spec, "workspace": names[0]}
+    return spec
+
+
+def _resolve_tour_paths(paths: list[str]) -> list[str]:
+    """A name that is not a path but is a bundled example means that example."""
+    bundled = {e.name: e.path for e in examples.bundled()}
+    return [p if os.path.exists(os.path.expanduser(p)) or p not in bundled else bundled[p] for p in paths]
+
+
+def cmd_examples(args) -> int:
+    entries = examples.bundled()
+    if args.name:
+        if not args.out:
+            raise SystemExit("Pass --out DIR to copy an example there.")
+        out = examples.copy_bundled(args.name, args.out)
+        print(f"Copied the {args.name!r} example to {out}. Edit it, then: zenform --config {out} preview")
+        return 0
+    width = max(len(e.name) for e in entries)
+    for e in entries:
+        print(f"{e.name:<{width}}  {e.description}")
+    print("\nSee them one after another: zenform tour    Start from one: zenform examples NAME --out DIR")
+    return 0
+
+
+def cmd_tour(args) -> int:
+    """Preview several configs in turn (the bundled examples by default), each in the preview window."""
+    if not _interactive():
+        raise SystemExit("tour is interactive (it waits for Enter between configs): run it in a terminal.")
+    prof = args.profile or profile.default_profile()
+    session = _load_session(prof)
+    entries = examples.discover(_resolve_tour_paths(args.paths) if args.paths else [examples.ROOT])
+    pdir = args.preview_profile or preview.default_preview_profile()
+    preview.check_safe(pdir, prof)
+    if preview.instance_running(pdir):
+        raise SystemExit(f"A preview window is already open on {pdir}. Close it first, then run tour again.")
+    binary = preview.zen_binary()
+    if not binary:
+        raise SystemExit(f"Could not find the Zen binary. Set ${preview.ENV_BIN}.")
+    icons = None if args.no_favicons else Favicons(prof)
+
+    def show(entry, i, n):
+        spec = _fit_workspace(config.load_config(entry.path), session, args.workspace)
+        new, ops = model.apply_layout(session, spec, favicons=icons)
+        problems = model.check(new, spec)
+        if problems:
+            raise SystemExit(f"{entry.name}: the result does not match the config:\n  " + "\n  ".join(problems))
+        preview.prepare(prof, new, pdir)
+        proc = preview.launch(binary, pdir)
+        kinds = [o["op"] for o in ops]
+        added = kinds.count("add")
+        edited = kinds.count("relabel") + kinds.count("move")
+        gone = kinds.count("unpin") + kinds.count("remove_folder")
+        print(f"[{i + 1}/{n}] {entry.name}: {entry.description}")
+        print(f"  against your current layout: {added} added, {edited} relabelled or moved, {gone} unpinned/removed")
+        return lambda: preview.stop(proc, pdir)
+
+    tour.run_tour(entries, show, input)
+    print("Done. Your real Zen was not touched.")
+    return 0
+
+
 def cmd_rollback(args) -> int:
     prof = args.profile or profile.default_profile()
     if profile.zen_running() and not args.force_running:
@@ -235,6 +308,18 @@ def build_parser() -> argparse.ArgumentParser:
     v.add_argument("--reset-pins", action="store_true", help="also send each pin back to its home page")
     v.add_argument("--no-favicons", action="store_true", help="do not fill in missing pin icons")
     v.set_defaults(fn=cmd_preview)
+
+    ex = sub.add_parser("examples", help="list the bundled example configs, or copy one to start from")
+    ex.add_argument("name", nargs="?", help="an example to copy (with --out)")
+    ex.add_argument("--out", help="directory to copy the example to")
+    ex.set_defaults(fn=cmd_examples)
+
+    t = sub.add_parser("tour", help="preview several configs in turn (the bundled examples by default)")
+    t.add_argument("paths", nargs="*", help="config directories, folders of them, or bundled example names")
+    t.add_argument("--preview-profile", help="folder for the preview profile (as for preview)")
+    t.add_argument("--workspace", help="show each config in this workspace (default: your only one)")
+    t.add_argument("--no-favicons", action="store_true", help="do not fill in missing pin icons")
+    t.set_defaults(fn=cmd_tour)
 
     r = sub.add_parser("rollback", help="restore the newest backup (Zen must be closed)")
     r.add_argument("--force-running", action="store_true", help="do not refuse while Zen is open")

@@ -37,6 +37,7 @@ $EDITOR ~/zen-config/folders/10-*.toml
 export ZENFORM_CONFIG=~/zen-config  # or pass --config, or run from inside the directory
 zenform plan                        # what would change; writes nothing
 zenform preview                     # see it: opens a separate Zen window on a throwaway profile
+zenform tour                        # flip through the bundled example layouts, one preview window at a time
 # quit Zen, then:
 zenform apply                       # backs up, writes, reads back to check
 zenform rollback                    # undo the last apply (Zen closed)
@@ -70,7 +71,7 @@ pins = [
 - **keep_folders**: folders zenform leaves exactly as they are (for example folders Zen manages itself).
 - Unknown keys are errors, so a typo does not silently do nothing.
 
-See [`examples/config`](examples/config).
+The bundled examples are in [`src/zenform/example_configs`](src/zenform/example_configs).
 
 ## Preview before you apply
 
@@ -84,6 +85,21 @@ real profile is written.
   `chrome/` from your profile. Never cookies, logins, history or extensions, so pages in the preview are signed out.
 - `--no-launch` only prepares the profile and prints how to open it. If the Zen binary is not found, set `ZENFORM_ZEN_BIN`.
 - Close the preview window before running `preview` again, then quit your real Zen and `apply` to make it real.
+
+## Try some layouts: `tour`
+
+```console
+zenform examples                    # developer, minimal, research
+zenform tour                        # preview each in turn: Enter = next, p = previous, 1-3 = jump, q = quit
+zenform tour developer ~/zen-ideas  # bundled names, config folders, or a folder holding several configs
+zenform examples developer --out ~/zen-config   # copy one to start from
+```
+
+`tour` is `preview` in a loop: it shows each config on your *current* session in a separate window, closes that window
+itself before opening the next, and wraps around. The examples name a workspace of their own; the tour shows them in
+yours (your only one, or `--workspace NAME`). Your real profile is never written. It needs a terminal, so run it
+yourself rather than from a script or an agent. A folder of your own variants (`work/`, `focus/`, `minimal/`, each with
+a `zenform.toml`) works the same way.
 
 ## What apply does and does not do
 

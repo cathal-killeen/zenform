@@ -1,0 +1,3 @@
+description = "Four essentials and nothing else."
+workspace = "Work"
+keep_folders = []

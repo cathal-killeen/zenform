@@ -1,5 +1,0 @@
-# zenform config: `zenform plan` shows what applying it would change; `zenform apply` does it (Zen closed).
-workspace = "Work"
-
-# Folders zenform never touches (Zen manages these itself).
-keep_folders = []

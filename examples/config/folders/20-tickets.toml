@@ -1,7 +1,0 @@
-# The part that goes stale: rebuild it from your tracker every month or quarter.
-name = "Now"
-
-pins = [
-  {label = "101 Login",   url = "https://tracker.example.com/browse/APP-101"},
-  {label = "117 Exports", url = "https://tracker.example.com/browse/APP-117"},
-]

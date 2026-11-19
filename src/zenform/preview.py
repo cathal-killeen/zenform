@@ -12,6 +12,7 @@ from __future__ import annotations
 import os
 import shutil
 import subprocess
+import time
 
 from zenform import mozlz4, profile
 
@@ -107,6 +108,20 @@ def prepare(live: str, session: dict, preview: str) -> list[str]:
         fh.write(mozlz4.encode(session))
     os.replace(target + ".tmp", target)
     return copied
+
+
+def stop(proc: subprocess.Popen, preview: str, timeout: float = 30.0) -> None:
+    """Close a preview window: ask Zen to quit (it saves its session), wait, and kill it only if it will not."""
+    if proc.poll() is None:
+        proc.terminate()
+        try:
+            proc.wait(timeout=timeout)
+        except subprocess.TimeoutExpired:
+            proc.kill()
+            proc.wait(timeout=5)
+    end = time.monotonic() + timeout
+    while instance_running(preview) and time.monotonic() < end:  # helper processes can outlive the main one
+        time.sleep(0.2)
 
 
 def command(binary: str, preview: str) -> list[str]:

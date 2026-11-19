@@ -1,0 +1,3 @@
+description = "Mail and calendar on top; code, docs and news in folders."
+workspace = "Work"
+keep_folders = []

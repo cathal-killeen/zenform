@@ -20,7 +20,7 @@ Zen must be closed and the user decides when. Everything else is safe.
    `unpin` is not a close: the tab stays open as an ordinary tab. Show the user the plan as text (`zenform plan`).
 5. To let the user see it first, `zenform preview` opens a separate Zen window on a throwaway profile; your real
    profile is untouched. It pops up a window, so run it only when the user asks; `zenform preview --no-launch` only
-   prepares the profile and is always safe.
+   prepares the profile and is always safe. Do not run `zenform tour`: it is interactive and for the user.
 6. Stop. Tell the user to quit Zen and run `zenform apply`; `zenform rollback` undoes it.
 
 Unknown keys in the config are errors by design. If `plan` fails, read the message: it names the file and the key.

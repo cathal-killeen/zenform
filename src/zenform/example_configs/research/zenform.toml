@@ -1,0 +1,3 @@
+description = "Reading and writing: notes, papers and reference."
+workspace = "Work"
+keep_folders = []

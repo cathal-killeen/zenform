@@ -1,0 +1,7 @@
+name = "Papers"
+
+pins = [
+  {label = "arXiv",        url = "https://arxiv.org/"},
+  {label = "Sem. Scholar", url = "https://www.semanticscholar.org/"},
+  {label = "PubMed",       url = "https://pubmed.ncbi.nlm.nih.gov/"},
+]

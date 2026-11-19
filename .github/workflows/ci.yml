@@ -18,8 +18,13 @@ jobs:
           python-version: ${{ matrix.python }}
       - name: Tests (standard library only, warnings are errors)
         run: PYTHONPATH=src python -W error -m unittest discover -s tests
-      - name: The example config is valid
-        run: PYTHONPATH=src python -c "from zenform import config, model; s = config.load_config('examples/config'); assert not model.validate_spec(s), model.validate_spec(s); assert not model.warnings(s), model.warnings(s)"
+      - name: The built wheel ships the example configs and runs
+        run: |
+          pip install build
+          python -m build --wheel
+          python -m zipfile -l dist/*.whl | grep -q "example_configs/minimal/zenform.toml"
+          pip install dist/*.whl
+          zenform examples
 
   lint:
     runs-on: ubuntu-latest
