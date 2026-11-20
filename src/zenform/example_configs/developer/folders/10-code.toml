@@ -1,0 +1,8 @@
+name = "Code"
+
+pins = [
+  {label = "My PRs",        url = "https://github.com/pulls"},
+  {label = "Issues",        url = "https://github.com/issues"},
+  {label = "Notifications", url = "https://github.com/notifications"},
+  {label = "Gists",         url = "https://gist.github.com/"},
+]

@@ -3,7 +3,8 @@ import unittest
 
 from helpers import SPEC, WS, session, tab
 
-from zenform import model
+from zenform import model, render
+from zenform.ui import UI
 
 
 class Apply(unittest.TestCase):
@@ -74,7 +75,7 @@ class Apply(unittest.TestCase):
         self.assertIn(("relabel", "Mail"), kinds)
         self.assertIn(("relabel", "Wiki"), kinds)
         self.assertIn(("add", "Fresh"), kinds)
-        self.assertIn("Fresh", model.render_plan(ops))
+        self.assertIn("Fresh", render.render_plan(ops, UI(mode="never")))
 
 
 class Keep(unittest.TestCase):

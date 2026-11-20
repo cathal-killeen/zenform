@@ -10,3 +10,6 @@ build/
 # Your own config and any real session files stay out of the repo.
 /zenform-config/
 /tests/fixtures/private/
+
+# Local worktrees
+/.claude/worktrees/

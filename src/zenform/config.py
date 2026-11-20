@@ -18,7 +18,7 @@ import tomllib
 
 from zenform import model
 
-ROOT_KEYS = {"workspace", "keep_folders"}
+ROOT_KEYS = {"workspace", "keep_folders", "description"}
 PINS_KEYS = {"pins"}
 FOLDER_KEYS = {"name", "collapsed", "pins"}
 PIN_KEYS = {"label", "url"}

@@ -1,0 +1,6 @@
+name = "News"
+
+pins = [
+  {label = "Hacker News", url = "https://news.ycombinator.com/"},
+  {label = "Lobsters",    url = "https://lobste.rs/"},
+]

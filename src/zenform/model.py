@@ -1,7 +1,8 @@
 """The layout and the session: applying one to the other.
 
 `apply_layout(session, spec)` is pure: it returns a new session and a list of operations (dicts), and never
-touches the input. The operations are the plan; `render_plan` turns them into text, `plan --json` prints them as is.
+touches the input. The operations are the plan; `render.render_plan` turns them into text, `plan --json`
+prints them as is.
 
 A spec is what config.load_config builds from the files:
 
@@ -176,7 +177,14 @@ def warnings(spec: dict) -> list[str]:
 # --- applying -------------------------------------------------------------------------------------
 
 
-def apply_layout(session: dict, spec: dict, *, reset_pins: bool = False, favicons: Favicons | None = None):
+def apply_layout(
+    session: dict,
+    spec: dict,
+    *,
+    reset_pins: bool = False,
+    favicons: Favicons | None = None,
+    fresh_icons: bool = False,
+):
     """Return (new_session, ops). Pure: the input is not changed."""
     problems = validate_spec(spec)
     if problems:
@@ -203,18 +211,30 @@ def apply_layout(session: dict, spec: dict, *, reset_pins: bool = False, favicon
     pool = [t for t in tabs if in_scope(t) and not t.get("zenIsEmpty")]
     placeholders = [t for t in tabs if in_scope(t) and t.get("zenIsEmpty")]
     used: set[int] = set()
-    icons_filled: list[str] = []
-    icons_missing: list[str] = []
+    icons_filled: list[str] = []  # had none, now has one
+    icons_replaced: list[str] = []  # had a different one (often a sign-in page's generic icon); the page's own wins
+    icons_cleared: list[str] = []  # fresh_icons: had one, none can be trusted, so it is dropped
+    icons_missing: list[str] = []  # none known and nothing trustworthy to use
 
     def give_icon(t, label, url):
         init = t.setdefault("_zenPinnedInitialState", {"entry": {"url": url, "title": label}, "image": None})
-        image = init.get("image") or t.get("image")
-        if not image and favicons is not None:
-            image = favicons.find(url)
-            (icons_filled if image else icons_missing).append(label)
-        if image:
-            init["image"] = image
-            t["image"] = image
+        prior = init.get("image") or t.get("image")
+        image = prior
+        if favicons is not None:
+            match = favicons.find(url)
+            if match:
+                if match.uri != prior:
+                    (icons_replaced if prior else icons_filled).append(label)
+                image = match.uri
+            elif fresh_icons:  # distrust what is stored: keep an icon only if the page's own can be found
+                image = None
+                (icons_cleared if prior else icons_missing).append(label)
+            elif not prior:
+                icons_missing.append(label)
+        init["image"] = image
+        t["image"] = image
+        if image is None:
+            t.pop("image", None)
 
     def take(url):
         for t in pool:
@@ -331,7 +351,15 @@ def apply_layout(session: dict, spec: dict, *, reset_pins: bool = False, favicon
         prev = old["id"]
 
     if favicons is not None:
-        ops.append({"op": "icons", "filled": len(icons_filled), "missing": icons_missing})
+        ops.append(
+            {
+                "op": "icons",
+                "filled": len(icons_filled),
+                "replaced": len(icons_replaced),
+                "cleared": icons_cleared,
+                "missing": icons_missing,
+            }
+        )
 
     # Everything the config owned and no longer lists becomes an ordinary tab.
     for t in pool:
@@ -383,27 +411,3 @@ def check(session: dict, spec: dict) -> list[str]:
 
 def changes(ops: list[dict]) -> list[dict]:
     return [o for o in ops if o["op"] in CHANGING]
-
-
-def render_plan(ops: list[dict]) -> str:
-    lines = []
-    for o in ops:
-        kind = o["op"]
-        if kind == "add":
-            lines.append(f"  + {o['label']}  [{o['where']}]  {o['url'][:70]}")
-        elif kind == "relabel":
-            lines.append(f"  ~ {o['from']!r} -> {o['to']!r}  [{o['where']}]")
-        elif kind == "move":
-            lines.append(f"  ~ {o['label']!r} moved to [{o['where']}]")
-        elif kind == "unpin":
-            lines.append(f"  - unpin {o['label']!r} (becomes an ordinary tab)")
-        elif kind == "remove_folder":
-            lines.append(f"  - remove folder {o['folder']!r}")
-        elif kind == "keep_folder":
-            lines.append(f"  = folder {o['folder']!r} kept as is")
-        elif kind == "keep_missing":
-            lines.append(f"  ? keep_folders: no folder {o['folder']!r} in Zen; ignored")
-        elif kind == "icons":
-            miss = f"; none found for {', '.join(o['missing'])} (open each page once)" if o["missing"] else ""
-            lines.append(f"  icons: {o['filled']} filled from the favicon database{miss}")
-    return "\n".join(lines) if lines else "  (nothing to do)"

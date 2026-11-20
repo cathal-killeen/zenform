@@ -1,0 +1,8 @@
+name = "Docs"
+
+pins = [
+  {label = "MDN",            url = "https://developer.mozilla.org/"},
+  {label = "Python",         url = "https://docs.python.org/3/"},
+  {label = "Stack Overflow", url = "https://stackoverflow.com/"},
+  {label = "Can I use",      url = "https://caniuse.com/"},
+]

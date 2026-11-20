@@ -1,7 +1,0 @@
-name = "Code"
-
-pins = [
-  {label = "app MRs",    url = "https://git.example.com/team/app/-/merge_requests"},
-  {label = "api MRs",    url = "https://git.example.com/team/api/-/merge_requests"},
-  {label = "CI",         url = "https://git.example.com/team/app/-/pipelines"},
-]

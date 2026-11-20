@@ -1,0 +1,6 @@
+pins = [
+  {label = "Mail",     url = "https://mail.google.com/mail/u/0/#inbox"},
+  {label = "Calendar", url = "https://calendar.google.com/"},
+  {label = "Docs",     url = "https://docs.google.com/document/"},
+  {label = "Notes",    url = "https://keep.google.com/"},
+]
