@@ -1,5 +1,6 @@
 import io
 import re
+import tempfile
 import unittest
 from unittest import mock
 
@@ -91,7 +92,8 @@ class OnTheCommandLine(unittest.TestCase):
         self.assertEqual(len(re.findall(r"\d+ essentials", ANSI.sub("", out))), 3)  # each example shows its size
 
     def test_errors_are_reported_once_on_stderr_with_exit_1(self):
-        code, out, err = run("--config", "/nonexistent", "plan")
+        with tempfile.TemporaryDirectory() as profile_dir:  # never the developer's real profile
+            code, out, err = run("--profile", profile_dir, "--config", "/nonexistent", "plan")
         self.assertEqual(code, 1)
         self.assertEqual(out, "")
         self.assertIn("No zenform.toml", err)
